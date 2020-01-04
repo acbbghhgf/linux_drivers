@@ -1,0 +1,8 @@
+.PHONY = all
+
+foo = $(bar)
+bar = $(ugh)
+ugh = HUH?
+
+all:
+	@echo $(foo)
