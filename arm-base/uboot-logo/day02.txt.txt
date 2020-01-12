@@ -1,0 +1,425 @@
+回顾：
+面试题：谈谈对嵌入式linux系统的认识
+给出场景：如何在下位机开发板上运行linux系统
+1.上位机搭建嵌入式linux开发环境
+  安装系统
+  安装软件
+  添加交叉编译器
+  	芯片厂家或者开发板厂家获取
+2.掌控下位机的基本硬件信息
+  粗看
+  		三大件
+  		外围
+  			产品研发阶段：网口和出口
+  细看 
+  		具体硬件外设具体分析
+  		原理图
+  		芯片手册
+  		以MMA8653的硬件信息掌控为例,重点谈I2C总线
+3.下位机部署软件
+  裸板软件
+  	 谈谈ARM裸板开发的流程
+  基于linux系统的软件
+4.嵌入式linux系统软件由三部分组成
+  bootloader
+  		裸板软件
+  		uboot
+  		初始化硬件+从闪存加载内核到内存并且启动内核+给内核传递启动参数
+  		告诉内核根文件系统rootfs在哪里(闪存上某个分区或者上位机(NFS)) 		
+  		上电运行,内核启动结束
+  		硬件初始化：
+  				CPU/内存/闪存/UART/网卡/关中断/关看门狗
+  				/初始化时钟/根据用户需求初始化某些外设
+  linux内核(kernel)
+  		7大功能
+  		uboot启动,掉电结束
+  根文件系统rootfs
+  		代名词
+  		cd /;ls 看到的所有内容都属于根文件系统
+  		根文件系统rootfs包含的内容：
+  			bin:各种命令
+  			sbin:各种超级用户的命令
+  			lib:标准系统库
+  			etc:各种服务的配置(tftpd-hpa,nfs)
+  			dev:存放设备文件
+  			sys:存放虚拟文件系统sysfs相关内容
+  			proc:存放虚拟文件系统procfs相关内容
+  			usr:存放其他命令
+  			...
+  			以上目录是根文件系统rootfs的必要目录,缺一不可！
+5.嵌入式linux系统的启动流程
+	上电CPU运行uboot
+	->uboot根据bootcmd加载启动内核并且通过bootargs给内核传递参数
+	->内核启动,完成7大功能
+	->内核最后根据uboot传递的bootargs到某个地方(闪存的某个分区或者上位机)
+	  找根文件系统rootfs
+	->一旦找到根文件系统rootfs->控制权交给根文件系统
+	->内核会运行第一号进程/sbin/init
+	->/sbin/init创建子进程,子进程执行/bin/sh
+	->shell程序启动,用户即可输入各种linux命令
+6.具体下位机部署嵌入式linux系统的流程
+  获取三部分软件对应的二进制文件：
+  	ubootpak.bin
+  	uImage
+  	rootfs_ext4.img
+  
+  部署之前切记要进行分区的规划
+    分区大小要大于等于二进制文件的大小
+    
+  利用tftp网络服务进行下载
+  利用uboot提供的update_mmc,mmc write命令最终将二进制文件写入闪存EMMC
+  	 			
+  设置嵌入式linux系统启动的环境变量：
+  setenv bootcmd mmc read A B C \; bootm A
+  setenv bootcmd tftp A uImage \; bootm A
+  setenv bootargs root=/dev/mmcblk0p2 ...
+  setenv bootargs root=/dev/nfs nfsroot=上位机ip:/opt/rootfs ...
+  
+  结论：
+  产品研发阶段,建议多多使用NFS网络服务,加快软件开发进度和效率
+  并且提高闪存的使用寿命
+************************************************
+2.问：ubootpak.bin从何而来？
+  答：来自著名的开源软件uboot
+  面试题：谈谈uboot的认识
+  2.1.大谈特谈uboot特点(吹牛)
+  uboot是一款著名的开源软件,德国的denx开发小组维护
+  uboot支持多种处理器架构(X86/ARM/powerpc/mips/FPGA/DSP)
+  uboot支持多种多样的硬件开发板  
+  uboot支持引导多种操作系统(linux/vxworks等)
+  uboot支持多种多样的文件系统格式(ext4/ext2/fat32等) 
+  uboot支持多种多样的硬件外设的设备驱动(硬盘驱动,SD卡驱动等)
+  uboot本质就是一个裸板程序,只是这个裸板程序要比之前写的shell裸板程序复杂
+  uboot上电执行,内核启动结束
+  
+  2.2.uboot的三大功能
+  1.硬件初始化功能：
+  		必要硬件初始化：
+  			初始化CPU的Cache(缓存)
+  			初始化时钟(CPU主频800MHz,UART时钟50MHz等)
+  			初始化内存
+  			初始化闪存
+  			初始化UART(调试)
+  			初始化网卡(下载)
+  			关闭中断(避免嵌入式linux系统启动时被打断,造成系统启动时间加长问题)
+  			         等系统正式启动完毕,再去处理中断
+  			关闭看门狗(避免嵌入式linux系统启动时看门狗给CPU发送复位信号)
+  			         等系统正式启动完毕,再去开启看门狗
+  		
+  	  可选硬件初始化：
+  	  	由于内核启动,uboot的生命周期就要结束,并且
+  	  	uboot之前所做的硬件初始化工作无效(内核还会
+  	  	重新硬件初始化),没有必要在uboot中做大量的
+  	  	硬件初始化代码,如果做了,会影响系统的启动时间
+  	  	所以uboot有些外设是否需要初始化完全要根据
+  	  	用户需求来定,举例子：
+  	  	用户要求开机上电LCD显示屏显示LOGO,此时就需要在uboot中添加LCD硬件初始化
+  	
+  	2.从某个地方加载内核到内存,并且启动内核
+  	  setenv bootcmd mmc read A B C \; bootm A
+  	  从EMMC的B开始读C这么多的数据到内存的A,并且从A启动内核
+  	
+  	  setenv bootcmd tftp A uImage \; bootm A
+  	  从上位机下载内核到内存的A,并且从A启动内核
+    
+    3.在内核正式启动之前,给内核传递启动参数,告诉
+      内核rootfs在某个地方
+      setenv bootargs root=/dev/mmcblk0p2 ...
+      告诉内核rootfs在EMMC的第三分区
+      
+      setenv bootargs root=/dev/nfs 
+      告诉内核rootfs在上位机,利用NFS网络服务找
+
+2.3.uboot源码操作
+    1.明确：ubootpak.bin二进制文件势必从uboot源码的编译来获取
+    2.uboot源码一定要从芯片厂家或者开发板的厂家来获取
+      此时此刻一定要注意：当前获取的源码仅仅支持芯片
+      厂家或开发板厂家的参考板,有可能还不完全支持你自己的板子
+      例如：
+      		三星参考板          自己的板子
+      		 S5P6818              S5P6818
+      		 内存512MB            1GB
+      		 Norflash            Nandflash
+      		 UART0                UART2
+      		 ...									....
+      结论：虽然两个板子的处理器一样,但是外围设备不一样
+            官方的uboot源码仅仅支持官方的参考板,势必不可能
+            完全支持自己的板子,所以如果将来硬件存在差异,需要
+            对官方的uboot源码进行有针对性的修改
+            所以：uboot严重依赖硬件信息
+            硬件差异问题一定要咨询硬件工程师！
+            		 
+      X6818开发板对应的uboot源码：ftp://PORTING/uboot.tar.bz2 
+    
+    3.获取"正确"(配套)的交叉编译器
+      交叉编译器的版本要和uboot源码的版本要配合
+      如果配合不当,会造成编译报错！
+      
+    4.验证测试官方uboot源码的正确性
+			注意：虽然已经掌握了硬件的差异性,建议先别
+			着急对uboot源码进行修改,而是直接上来先编译
+			保证能够编译通过,确保uboot源码和编译器的
+			版本配合,将来再慢慢的修改
+			uboot源码操作三部曲:
+			make distclean //将uboot源码中之前所有的临时配置文件
+			                 目标文件全部清除,获取到最干净的源码
+										 //只清除一次
+			make ABC_config //对uboot源码进行配置,能够支持
+			                //ABC开发板,ABC就是芯片厂家或者
+			                //开发板厂家的参考板的名称                 
+											//只配置一次
+			make //正式编译
+			ls
+					u-boot.bin //有的板子是u-boot.bin
+					ubootpak.bin //有的板子是ubootpak.bin
+			
+			案例：交叉编译X6818开发板的uboot源码
+			上位机操作实施步骤：
+			cp uboot.tar.bz2 /opt/
+			cd /opt/
+			tar -xvf uboot.tar.bz2 //生成一个uboot目录
+			cd /opt/uboot //进入uboot源码根目录
+			make distclean //获取最干净的源码
+			make x6818_config //将uboot源码配置成能够运行在x6818开发板上
+			time make V=1 -j2/j4/j8
+					time:能够获取到编译的消耗时间
+					V=1:能够获取到详细的编译过程
+					-j2:采用双核同时编译
+					-j4:采用四核同时编译
+					-j8:采用8核同时编译
+						上位机执行查看CPU的核数：
+							cat /proc/cpuinfo //查看CPU的信息
+									processor0 //第一个CPU
+											...
+									processor1 //第二个CPU
+											...
+									processor2 //第三个CPU
+									...
+								  processor3 //第四个CPU
+									...
+			ls
+				ubootpak.bin //x6818的uboot二进制文件
+		  问:ubootpak.bin能否在自己的开发板上运行呢？
+		  答:目前的这个ubootpak.bin肯定能够在参考板上
+		  运行,不一定在自己的板子上运行,如果不能运行
+		  还需要进行uboot代码的修改
+		  
+		  总结：一旦官方uboot源码编译通过,得到两个重要结论
+			1.官方uboot源码没毛病
+			2.官方uboot源码和交叉编译版本非常配合
+		
+		5.根据硬件差异,对官方的uboot源码进行有针对性的
+		  修改,首先要明确uboot源码的执行流程,只有掌握了
+		  执行流程,在某个地方进行修改即可
+		  问：uboot代码执行流程是什么样呢？
+		  答：首先要明确uboot的编译链接脚本,通过链接脚本
+		  可以获取到：
+		  1.运行的入口函数
+		  2.运行的第一个文件
+		  3.运行的内存起始地址
+		  
+		  问：uboot链接脚本在哪里呢？
+		  答：通过编译uboot源码的打印信息中找到最后的
+		  链接命令：
+		  arm-cortex_a9-linux-gnueabi-ld.bfd  -Ttext 0x43C00000 -o u-boot -T u-boot.lds		
+			说明：
+			uboot将来运行的起始内存地址为0x43C00000
+			uboot对应的链接脚本为uboot源码根目录下的u-boot.lds
+			
+			立马打开当前目录下的u-boot.lds,获取到如下内容：
+			1.uboot运行的第一个入口函数为:_stext
+			2.uboot运行的第一个文件为：
+				arch/arm/cpu/slsiap/s5p6818/start.S
+		  
+		  剩下的事情就是用sourceinsight或者ctags创建
+		  uboot源码阅读工程,找到第一个文件和入口函数
+		  顺藤摸瓜,慢慢理顺uboot的执行流程即可！
+		  X6818开发板的uboot代码执行流程：
+		  上电CPU->b 	reset->bl	board_init_f->ldr	pc, =board_init_r->main_loop->cli_loop->cli_simple->loop
+		  
+		  board_init_f->board_early_init_f->
+		  			for (init_fnc_ptr = init_sequence; 
+								  *init_fnc_ptr; ++init_fnc_ptr) {
+								  if ((*init_fnc_ptr)() != 0) {
+											hang ();
+								 }			
+						}
+		 
+		  board_early_init_f->
+		 								xxx_init();
+		 								//切记：如果需要在uboot中添加
+		 								额外的硬件初始化代码,可以在此函数中添加
+		 								//当然如果将来开发板上有相关的硬件初始化代码
+		 								有问题,重点关注此函数中的代码
+		 								例如：
+		 								led_init();
+		 								led_on();
+		 								
+		 	board_init_r->
+		 							  //一下三个函数了解
+		 								flash_init();//初始化Norflash
+		 								nand_init();//初始化Nandflash
+		 								mmc_initialize(gd->bd);//初始化SD卡或者EMMC
+		 								
+		 								//切记：也可以将自己的硬件初始化代码放在一下这个函数
+		 								board_late_init();//初始化开发板上外设的							
+		  						
+		  							//初始化网卡
+		   							eth_initialize(gd->bd);
+		   							
+		   							//硬件初始化完毕,进入死循环
+		   						  for (;;) {
+													main_loop();
+									  }
+											
+		 //这部分内容了解即可
+		 main_loop->
+		 			cli_loop->
+		 					cli_simple_loop->
+		 							for (;;) {
+		 									//获取用户输入的uboot命令
+		 									cli_readline("tarena#");
+		 									//将用户输入的命令从console终端拷贝到数组中
+		 									strcpy(lastcommand, console_buffer);
+		 									//正式运行uboot命令
+		 									run_command_repeatable(lastcommand, flag);
+		 							}
+			
+		 总结：将来实际开发,如果硬件外设初始化有问题,以上代码
+		       可以先不用去拜读,重点关注大招(一个配置文件)	                
+
+2.4.实际开发uboot源码移植修改的重点关注硬件信息配置头文件(大招)
+    uboot源码中硬件相关的配置头文件所在路径：
+    uboot源码根目录/include/configs/ABC.h (ABC就是开发板的名称)
+    x6818开发板对应的硬件配置头文件include/configs/x6818.h
+    切记：此文件一定要多多看,将来根据硬件差异重点修改此文件！
+    一下几个比较关键的硬件信息宏：
+    	#define	CONFIG_ENV_OFFSET			512*1024 //uboot环境变量在EMMC的起始存储地址
+	    #define CONFIG_ENV_SIZE       32*1024	 //环境变量的大小
+      #define CONFIG_S5P_SERIAL_INDEX			CFG_UART_DEBUG_CH //调试串口的硬件编号
+      #define CONFIG_S5P_SERIAL_CLOCK			CFG_UART_CLKGEN_CLOCK_HZ //调试串口的时钟频率
+    
+    此头文件阅读完毕以后,将来可以根据硬件信息的差异有针对性的修改,例如：
+          飞思卡尔参考板IR        自己的板子SDR
+ 处理器：     MX25                   MX25
+ 内存：       128MB                 256MB
+ 闪存         Nandflash             Norflash:1GB
+ 调试串口     UART0                 UART2
+ 串口时钟     33.3MHz               40MHz
+ 其他硬件     ...                   ...
+ 官方uboot    支持                  不一定
+ 注意：以上硬件信息的差异一定要咨询硬件工程师！
+ 结论：有了以上的硬件差异,只需踏踏实实的修改对应的头文件中硬件的配置选项即可
+
+2.5.案例：修改uboot的命令行提示
+上位机实施步骤：
+cd /opt/uboot
+vim include/configs/x6818.h 
+将"tarena#"修改为自己喜欢的提示符
+保存退出
+make
+cp ubootpak.bin /tftpboot
+
+下位机更新uboot:
+重启下位机进入uboot命令行模式,执行：
+tftp 48000000 ubootpak.bin
+update_mmc 2 2ndboot 48000000 200 78000
+reset //复位下位机命令
+
+2.6.uboot的调试手段
+   1.利用uboot提供的打印函数printf打印硬件寄存器的值
+     通过寄存器的值来判断对外设的访问是否正确
+     例如：uboot启动需要开LED1灯,但是发现LED1每反应
+     解决思路：只需将LED1对应的GPIO涉及所有相关的寄存器
+     值打印输出,查看寄存器值是否正确,如果寄存器的值
+     是正确的,LED1灯还是没有反应,势必是LED1硬件问题
+     printf("复用功能选择寄存器=%#x," 
+     				"输出使能寄存器=%#x, "
+     				"数据寄存器=%#x", GPIOCALTFN0,
+     													GPIOCOUTNEB
+     													GPIOCOUT);
+   
+   2.printf打印函数使用的前提是UART必须提前初始化
+     如果UART还没有初始化,发现uboot无法正常启动,如何
+     定位到uboot在哪个代码地方挂掉呢？
+     此时利用传统的开关灯调试方法来指示uboot执行的位置
+     例如：
+     b   reset
+     reset:
+        @设置CPU为SVC
+     		mrs ... 
+     		bic ...
+     		orr ...
+     		msr ...
+     		
+     		@关闭看门狗
+     		ldr 
+     		mov 
+     		str 
+        
+        怀疑uboot死到关闭看门狗的这个位置了
+        所以只需在关闭看门狗之前开LED1灯
+        然后在关闭看门狗之后在打开LED1灯
+        uboot执行以后,LED1灯是亮的,说明uboot死到关闭看门狗这个位置
+        uboot执行以后,LED1灯是灭的,说明关闭看门狗的地方是没有问题
+        以此类推一点点查看uboot在何处死机
+    3.别忘记除了软件来进行跟踪调试,还要借助可爱的示波器来抓取波形分析波形
+
+2.7.案例：uboot启动,将LED1打开
+上位机实施步骤：
+cd /opt/uboot
+vim board/s5p6818/x6818/board.c +190
+在此函数中添加LED1的初始化和开灯代码,如下：
+int board_early_init_f(void){
+  ...
+	led_init(); //初始化函数
+	led_on(); //开灯函数
+	return 0;
+}
+在文件最前面添加头文件：
+#include "led.h"
+保存退出
+cp led.h board/s5p6818/x6818/
+cp led.c board/s5p6818/x6818/
+
+vim board/s5p6818/x6818/Makefile 添加：
+obj-y += led.o
+保存退出
+make 
+cp ubootpak.bin /tftpboot
+
+下位机更新uboot:
+重启下位机进入uboot命令行模式,执行：
+tftp 48000000 ubootpak.bin
+update_mmc 2 2ndboot 48000000 200 78000
+reset //复位下位机命令
+查看LED1是否打开
+
+2.8.案例：uboot启动,让BEEP短暂响一下
+    思路和2.7步骤相似
+ 
+2.9.案例：uboot启动,利用汇编实现LED1开
+实施步骤：
+cd /opt/uboot
+vim arch/arm/cpu/slsiap/s5p6818/start.S +92
+仿照关闭看门狗的汇编代码实现LED1的开灯代码
+   
+
+
+        
+        
+
+
+
+
+
+ 
+ 
+    
+  	  	 	
+  		
+  		     
+    
+  
+  			
+    		   	

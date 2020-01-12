@@ -1,0 +1,351 @@
+回顾：
+面试题：谈谈对uboot的认识
+1.uboot的特点
+2.uboot的功能
+  硬件初始化
+  加载启动内核
+  给内核传递启动参数
+3.uboot源码操作
+  获取源码
+  	仅仅支持参考板
+  获取合适的交叉编译器
+  验证uboot源码(前提是先不要做硬件差异的代码修改)
+    make distclean
+    make ABC_config
+    make
+  根据硬件差异(参考板和自己板子的硬件对比)对uboot源码进行移植修改
+    建议先理清uboot代码的执行流程,执行流程有相关的
+    硬件初始化代码,有针对性的修改
+    		通过编译打印信息获得链接命令
+    		通过链接命令确定uboot运行的起始内存地址和链接脚本
+    		通过链接脚本获取入口函数和运行的第一个文件
+    		利用sourceinsight或者ctags慢慢品味代码
+    		    汇编相关代码基本无需关注
+    		    其中重点关注：board_***这些函数重点关注
+    切记uboot移植重点关注硬件配置头文件
+    		include/configs/ABC.h (多多看)		    
+
+4.uboot调试
+  打印寄存器值(特殊功能寄存器)
+  原始开关灯测试方法
+  示波器抓取分析波形
+  
+5.uboot添加logo显示功能
+  5.1.为何在uboot添加logo显示？
+  		本质目的提高用户体验度
+  		只要是产品带LCD显示屏,一律添加LOGO
+  5.2.uboot添加logo显示的原则
+      越早显示越好
+      logo本质就是一张图片,图片越小越好
+  5.3.LCD显示屏显示logo的硬件原理
+      内存控制器从显存后去要显示的图像数据
+      内存控制器将图像数据丢给LCD控制器
+      LCD控制器将图像数据投射到LCD面板
+      与其说是研究LCD显示屏,不如说是操作显存
+      只要将显存的数据进行篡改,图像立刻发生变化
+      
+      一帧图像(一张图片)由若干个像素点组成,并且
+      每一个像素点都有唯一的一种颜色
+      而颜色又由红绿蓝(RGB)三元色组成
+      每一个颜色分量值的范围：0x00~0xff
+      例如：某个像素点的颜色为白色,那么这个像素点
+            对应的颜色值为：0x00ffffff,此值存于显存中
+      例如：有一块显示屏,分辨率为1024*600
+      1024:一行有1024个像素点
+      600:600行
+      像素点个数：1024*600
+      显存大小：1024*600*4
+      
+      案例：在uboot添加logo显示
+      实验步骤：
+      ftp://porting/u-boot-logo.rar
+      实验文档：LOGO显示.docx   
+      涉及的源码：ftp://porting/u-boot-logo.rar
+      								lcd_logo.c 源码
+      								tarena_logo.c  存放logo的数组
+      
+      案例：在LCD显示屏的正中央显示一个矩形(颜色大小自定义)
+      案例：在LCD显示屏上显示一个圆	
+**************************************************
+2.linux内核
+  问：uImage内核镜像从何而来？
+  答：uImage势必来自内核源码的编译
+  2.1.明确：嵌入式linux系统软件包括三部分
+      bootloader:uboot
+      linux内核:uImage
+      根文件系统rootfs:rootfs_ext4.img
+      
+  2.1.谈谈linux内核的特点(吹牛)
+  		推荐视频:<<the code linux>>
+  		linux内核是一款非常著名的开源软件
+  		官网：www.kernel.org
+  		linux内核支持多种处理器架构
+  		linux内核支持多种多样的硬件开发板
+  		linux内核支持多种多样的硬件外设设备驱动
+  		linux内核支持多种多样的网路服务(TCP/IP协议栈)
+  		推荐三本书：
+  		<<Unix环境高级编程>>第三版
+  		<<Linux设备驱动程序>>第三版
+  		<<Linux内核设计与实现>>第三版
+  		
+  2.2.linux内核的七大功能
+      内存管理子系统
+      进程管理子系统
+      文件系统
+      系统调用
+      设备驱动
+      网络协议栈
+      平台相关
+  
+  2.3.linux内核源码操作
+      1.linux内核源码切记务必从芯片厂家或者开发板的
+        厂家获取
+        目前有很多公司将内核源码放到www.github.com进行托管
+        此时此刻官方的内核源码仅仅支持官方的参考板
+        不一定能够在自己的开发板上运行,将来需要对
+        官方的内核源码有针对性的修改根据硬件差异
+        X6818开发板官方内核源码：ftp://porting/kernel.tar.bz2
+      
+      2.获取"正确的"(配套)交叉编译器
+        注意：linux内核源码的版本一定要和交叉编译器的版本要配合
+        
+      3.验证官方的内核源码的是否正确
+        前提是先不要根据硬件差异对内核源码进行修改
+        linux内核源码编译操作三部曲:
+        make distclean //获取最干净的源码,只做一次
+        make ABC_defconfig //对内核源码进行配置,让它               
+                           //支持ABC这块开发板
+                           //同样只做一遍
+                           //ABC:开发板的名称
+        make uImage //编译内核源码,生成uImage二进制文件
+        ls arch/arm/boot/uImage //编译成果
+        
+        结论：如果编译成果,说明：
+        1.官方提供的内核源码没毛病
+        2.内核源码和交叉编译器版本配合
+        
+        案例：上位机交叉编译X6818开发板的内核源码
+        上位机执行：
+        达内虚拟机:
+        /home/tarena/workdir/kernel/kernel.tar.bz2       
+        cp kernel.tar.bz2 /opt/
+        cd /opt/
+        tar -xvf kernel.tar.bz2 //生成kernel目录
+        cd /opt/kernel //进入内核源码根目录
+        make distclean
+        make x6818_defconfig
+        time make uImage -j2/j4/j8
+        ls arch/arm/boot/uImage 
+        cp arch/arm/boot/uImage /tftpboot        
+        下位机执行：
+        重启下位机,进入uboot命令行执行：
+        tftp 48000000 uImage 
+        bootm 48000000 //系统启动以后,观察LED灯交替闪烁现象
+        如果每次执行以上两个命令,太麻烦,所以可以
+        将以上两个命令设置到bootcmd:
+        setenv bootcmd tftp 48000000 uImage \; bootm 48000000
+        saveenv
+        
+        编译出错提示："mkimage" command not found - U-boot images will not built
+        原因：编译uImage需要mkimage命令,但是目前linux上位机系统没有这个命令
+              此命令来自于编译uboot以后生成
+        解决：
+        cd /opt/uboot
+        find . -name mkimage
+           tools/mkimage
+        sudo cp /opt/uboot/tools/mkimage /sbin/
+        让linux系统具有mkimage命令
+        
+2.4.源码验证完毕,接下来就要根据硬件差异对官方的
+    内核源码有针对性的修改,例如：
+           xilinx参考板zed      自己的板子snr
+   CPU:       zynq702             zynq702
+ 传感器LM77:  设备地址:0x48      设备地址:0x49
+   LED1:      GPIOA23             GPIOC13  
+   ...         ...                 ...      
+官方内核源码  支持                不一定支持
+注意：硬件差异咨询硬件工程师
+结论：根据以上硬件信息的差异,对官方的内核源码进行修改即可
+问：linux内核源码的修改从哪些方面入手呢？
+答：从以下两个方面入手即可：
+1.从linux内核源码的配置角度考虑硬件差异问题
+	cd /opt/kernel //进入内核源码根目录
+	make menuconfig //调出内核源码的配置菜单
+	如果出现一下问题：
+		提示缺少：ncures  library没有
+	解决办法：sudo apt-get install libncures-dev
+	//以下为重点关注的配置选项菜单：  
+	  System Type  --->  //三检查
+	  		//检查当前内核是否支持ARM架构
+	  		//检查当前内核是否支持S5P6818处理器
+	  		ARM system type (SLsiAP S5P6818)  --->
+	  		//检查当前内核是否支持X6818开发板
+	  		Platform board (X6818: 9tripod's s5p6818 board) 
+	  
+	  Boot options  ---> //内核启动参数
+	  		//(...)里的内容就是内核给自己传递的参数(不求uboot)
+	  		//将光标移动到此位置,按回车键进入,删除之前的参数信息,输入新的参数
+	  		(console=ttySAC0,115200n8 androidboot.hardware=x6818...)
+	  		
+	  		//此选项用于配置内核到底使用uboot的bootargs启动参数
+	  		//还是用内核自己传递的启动参数
+	  		//还是两个都用呢(uboot的bootargs和内核的同时使用)
+	  		//把光标移动到这个选项位置,按回车键进入进行选择
+	  		Kernel command line type (Use bootloader kernel arguments if available)
+	  		 		      //内核使用uboot的bootargs作为启动参数
+	  		 		      (X) Use bootloader kernel arguments if available        
+                  //不仅仅使用内核自己传递的参数,还要在后面追加uboot的bootargs参数信息
+                  ( ) Extend bootloader kernel arguments                    
+                  //内核使用自己传递的参数作为启动参数
+                  ( ) Always use the default kernel command string  
+	   
+	  Device Drivers  ---> 
+	      //Norflash和Nandflash驱动
+	  		< > Memory Technology Device (MTD) support  ---> 
+						 Mapping drivers for chip access  ---> //Norflash驱动
+						 < >   NAND Device Support (NEW)  ---> //Nandflash驱动
+			  
+			  //网卡驱动
+			  [*] Network device support  --->
+			  	   [*]   Ethernet driver support  ---> 
+			  	   		   [*]   Nexell devices //X6818开发板的网卡驱动
+			  
+			  //输入设备驱动:键盘/鼠标/触摸屏
+			  Input device support  ---> 	   
+			  		 [*]   Touchscreens  ---> 
+			  		 		 <*>   GSLX680 touchscreen //触摸屏GSLX680驱动
+			  
+			  //I2C总线驱动支持
+			  <*> I2C support  --->
+			  	 I2C Hardware Bus support  ---> 
+			  	 		 <*> Slsiap I2C  //S5P6818 I2C控制器的驱动
+			  
+			  //SPI总线驱动支持
+			  [*] SPI support  ---> 
+			  
+			  //一线式总线驱动
+			  < > Dallas's 1-wire support  ---> 
+			  
+			  //看门狗驱动 
+			  [*] Watchdog Timer Support  --->  
+			  
+			  //摄像头驱动
+			  <*> Multimedia support  --->
+			 
+			 //LCD显示屏驱动 
+			 Graphics support  --->  
+			 			  <*> Support for frame buffer devices  ---> //S5P6818 LCD控制器的驱动 		    
+
+			 //声卡驱动 
+			 <*> Sound card support  --->
+			 
+			 //USB驱动
+			 [*] USB support  ---> 
+			     <*>   USB Mass Storage support //U盘驱动
+			 
+			 //SD卡/TF卡/EMMC驱动
+			 <*> MMC/SD/SDIO card support  --->
+	 
+	 File systems  --->//文件系统(root=/dev/mmcblk0p2 rootfstype=ext4)
+	 		 	//EXT4文件系统
+	 		 	<*> The Extended 4 (ext4) filesystem
+	 		 	//VFAT=FAT32文件系统
+	 		 	<*> VFAT (Windows-95) fs support 
+	 		 	//NTFS文件系统
+	 		 	<*> NTFS file system support  
+	 		 	//cramfs文件系统
+	 		 	[*] Miscellaneous filesystems  --->
+	 		 		 < >   Compressed ROM file system support (cramfs) 
+	 		  //网络文件系统
+	 		  [*] Network File Systems  --->、
+	 		  		 //采用NFS网络服务的根文件系统rootfs
+	 		  	   [*]   Root file system on NFS 
+案例1:内核的启动参数由自己传递,不再使用uboot的bootargs
+实施步骤：
+上位机执行：
+cd /opt/kernel
+make menuconfig 
+	Boot options  ---> 	  		
+	  		//将光标移动到此位置,按回车键进入,删除之前的参数信息
+	  		//输入新的参数：root=/dev/nfs nfsroot=192.168.1.8:/opt/rootfs 
+	  		    ip=192.168.1.110:192.168.1.8:192.168.1.1:255.255.255.0 
+	  		    init=/linuxrc console=ttySAC0,115200 
+	  		    maxcpus=1 lcd=vs070cxn tp=gslx680-linux
+	  		    保存退出	  		  
+	  		(console=ttySAC0,115200n8 androidboot.hardware=x6818...)
+	  		
+	  		//将光标移动到此位置,按回车键进入,选择第三项	  		
+	  		Kernel command line type (Use bootloader kernel arguments if available) 		     
+	  		 		      ( ) Use bootloader kernel arguments if available        
+                  ( ) Extend bootloader kernel arguments                    
+                  (X) Always use the default kernel command string  		
+				保存退出
+make uImage -j2/j4/j8
+cp arch/arm/boot/uImage /tftpboot
+
+下位机测试：
+重启下位机,进入uboot命令行模式,执行：
+setenv bootargs //清楚uboot的参数
+saveenv
+tftp 48000000 uImage
+bootm 4800000 //等待下位机的linux系统启动
+下位机的linux系统启动完毕,执行一下命令查看内核的启动参数：
+cat /proc/cmdline
+注意：做完此实验,还要回退到内核启动参数用uboot的bootargs
+
+案例2：去除触摸屏驱动,查看下位机的QT程序运行以后
+       触摸屏是否还能正常使用
+cd /opt/kernel
+make menuconfig 
+		Device Drivers  ---> 
+				 Input device support  ---> 	   
+			  		 [*]   Touchscreens  ---> 
+			  		     //按N键去除官方的触摸屏驱动
+			  		 		 <*>   GSLX680 touchscreen //触摸屏GSLX680驱动
+		保存退出
+make uImage -j2/j4/j4
+cp arch/arm/boot/uImage /tftpboot
+
+下位机测试：
+进入uboot命令行模式执行：
+tftp 48000000 uImage 
+bootm 48000000 //系统启动完毕,查看QT界面是否还能操作
+注意：做完此实验,还要回退支持触摸屏驱动
+
+案例3：验证内核的NFS选项决定内核通过NFS网络服务找根文件系统
+cd /opt/kernel
+make menuconfig
+  File System->
+  		 	[*] Network File Systems  --->、
+	 		  		 //按N键去除此选项
+	 		  	   [*]   Root file system on NFS	
+	保存退出
+make uImage -j2/j4/j8
+cp arch/arm/boot/uImage /tftpboot
+下位机测试：
+进入uboot命令行模式执行：
+tftp 48000000 uImage 
+bootm 48000000 //查看内核是否能够利用NFS网络服务找到上位机的根文件系统
+
+  	    
+
+
+
+          
+        
+                             
+                           
+        
+        
+              
+  		
+  		
+
+
+
+
+
+
+
+
+							
