@@ -11,7 +11,7 @@
 #include <linux/gpio.h>
 #include <ls2k.h>
 
-static int gpio_num = 60;
+static int gpio_num = 55;
 module_param(gpio_num, int, S_IRUGO);
 
 struct ls2k_gpio_info 
