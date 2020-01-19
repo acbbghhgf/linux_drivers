@@ -1,7 +1,6 @@
-.PHONY:all
+.PHONY: all
 
-objects = main.o foo.o bar.o utils.o
-objects += another.o
+override foo = x
 
 all:
-	@echo $(objects)
+	@echo "foo = $(foo)"

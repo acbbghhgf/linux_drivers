@@ -1,0 +1,15 @@
+.PHONY: clean
+
+CC=gcc
+RM=rm
+
+EXE=simple
+OBJS=main.o foo.o
+
+$(EXE) : $(OBJS)
+	$(CC) -o $@ $^
+%.o : %.c
+	$(CC) -o $@ -c $^
+
+clean:
+	$(RM) -rf $(EXE) $(OBJS)

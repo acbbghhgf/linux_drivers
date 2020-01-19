@@ -1,0 +1,6 @@
+.PHONY : all
+
+ROOT := $(realpath ./..)
+
+all:
+	@echo $(ROOT)
