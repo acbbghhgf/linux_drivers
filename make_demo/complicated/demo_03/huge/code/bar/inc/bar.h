@@ -1,15 +1,13 @@
 /*************************************************************************
-	> File Name: main.c
+	> File Name: foo.h
 	> Author: 
 	> Mail: 
-	> Created Time: 2020年02月02日 星期日 23时15分41秒
+	> Created Time: 2020年02月02日 星期日 23时28分21秒
  ************************************************************************/
 
-#include "foo.h"
-#include "bar.h"
-int main()
-{
-    foo();
-    bar();
-    return 0;
-}
+#ifndef __BAR_H
+#define __BAR_H
+
+void bar();
+
+#endif

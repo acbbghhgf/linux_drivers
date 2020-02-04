@@ -1,2 +1,0 @@
- objs/foo.o deps/foo.dep: foo.c \
- /home/ww/ww/linux_drivers/make_demo/complicated/demo_03/huge/code/foo/inc/foo.h

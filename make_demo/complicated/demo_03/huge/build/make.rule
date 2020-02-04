@@ -58,12 +58,16 @@ INCLUDE_DIRS := $(addprefix -I, $(INCLUDE_DIRS))
 endif
 ifneq ($(LINK_LIBS), "")
 LINK_LIBS := $(strip $(LINK_LIBS))
+LIB_ALL := $(notdir $(wildcard $(DIR_LIBS)/*))
+LIB_FILTERED := $(addprefix %, $(addprefix lib, $(LINK_LIBS)))
+$(eval DEP_LIBS = $(filter $(LIB_FILTERED), $(LIB_ALL)))
+DEP_LIBS := $(addprefix $(DIR_LIBS)/, $(DEP_LIBS))
 LINK_LIBS := $(addprefix -l, $(LINK_LIBS))
 endif
 
 $(DIRS):
 	$(MKDIR) $@
-$(EXE): $(DEP_DIR_EXES) $(OBJS)
+$(EXE): $(DEP_DIR_EXES) $(OBJS) $(DEP_LIBS)
 	$(CC) -L$(DIR_LIBS) -o $@ $(filter %.o, $^) $(LINK_LIBS)
 $(LIB): $(DEP_DIR_LIBS) $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(filter %.o, $^)
