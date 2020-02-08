@@ -1,0 +1,367 @@
+.goods_contents{
+margin:0;
+padding:0;
+}
+.box_up{
+	clear:both;
+}
+.box_left{
+	float:left;
+	width:175px;
+}
+.box_right{
+	float:right;
+	width:805px;
+}
+h3{
+ 	background:#666;
+	color:#fff;
+	font-size:12px;
+	text-align:center;
+ }
+.goods_contents ul.current_page{
+	list-style-type:none;
+	height:25px;
+	line-height:25px;
+	padding-left:10px;
+}
+
+.goods_contents dl.current_goods{
+	display:block;
+	height:43px;
+	line-height:5px;
+}
+.goods_contents dl.current_goods dt{
+	float:left;
+	margin-top:20px;
+	padding-left:10px;
+}
+.goods_contents dl.current_goods dd{
+	float:right;
+	margin-top:20px;
+	padding-right:10px;
+}
+
+div.goods_show{
+
+}
+div.goods_show p.goods_zoom{
+	float:right;
+}
+div.goods_show dl.goods_photo{
+	display:block;
+	width:450px;
+	float:left;
+	margin-right:30px;
+}
+
+div.goods_show dl.goods_photo dt.big_photo{
+	float:right;
+}
+
+div.goods_show dl.goods_photo dd{
+	width:92px;
+}
+div.goods_show dl.goods_photo dd img{
+	display:block;
+	margin:3px 0 0 15px;
+	padding:2px;
+	border:1px solid #ccc;
+}
+div.goods_show dl.goods_photo dd.previus_photo{
+	display:block;
+	width:100px;
+	padding-top:5px;
+	padding-left:20px;
+}
+div.goods_show dl.goods_photo dd.previus_photo a{
+	display:block;
+	width:19px;
+	height:10px;
+	background:url(../images/goods/001_vj_05.gif);
+	text-indent:-9999px;
+	margin:2px 15px
+}
+div.goods_show dl.goods_photo dd.next_photo{
+	display:block;
+	width:19px;
+	height:10px;
+	background:url(../images/goods/001_vj_35.gif);
+	text-indent:-9999px;
+	margin-left:35px;
+	margin-top:3px;
+}
+div.goods_show dl.goods_cart_info dt{
+	float:right;
+}
+div.goods_show dl.goods_cart_info dd p{
+	display:inline-block;
+	height:33px;
+	line-height:40px;
+
+}
+div.goods_show dl.goods_cart_info dd.sell_price p strong{
+	font-size:24px;
+}
+
+div.goods_show dl.goods_cart_info dd.goods_size p{
+	margin-top:8px;
+	margin-bottom:8px;
+	width:400px;
+	height:35px;
+	border:2px solid red;
+	padding:5px;
+}
+.goods_show .goods_photo .list_photo img{width:60px;}
+.goods_show .goods_photo .big_photo{padding-top:15px;}
+div.goods_show dl.goods_cart_info dd.goods_num{
+	margin-top:10px;
+}
+div.goods_show dl.goods_cart_info dd.goods_num select{
+	width:80px;
+}
+div.goods_show dl.goods_cart_info dd.put_cart a{
+	display:block;
+	float:right;
+	width:197px;
+	height:54px;
+	background:url(../images/goods/001_vj_31.gif);
+	text-indent:-9999px;
+}
+div.share_click{
+	clear:both;
+}
+div.share_click ul{
+	width:200px;
+	border:1px solid #ccc;
+	padding:0px;
+	float:left;
+	margin:5px 0 0px 5px;
+}
+div.share_click ul li{
+	float:left;
+	margin-left:5px;
+}
+div.share_click p{
+	height:28px;
+	line-height:28px;
+	width:80px;
+	margin-left:370px;
+}
+div.share_click p img{
+	margin-right:5px;
+}
+
+div.goods_categray{
+	width:170px;
+}
+
+div.goods_categray ul{
+	margin-top:15px;
+	padding:4px;
+	border:5px solid #eee;
+}
+
+div.goods_categray ul li.categray_up{
+	
+}
+div.goods_categray ul li a{
+	height:25px;
+	line-height:25px;
+}
+
+div.goods_other_catch{
+	width:170px;
+	margin-top:10px;
+}
+
+div.goods_other_catch ul{
+	margin:3px;
+	padding:5px;
+	border:2px solid #eee;
+}
+div.goods_other_catch ul li{
+	margin-bottom:10px;
+}
+
+div.goods_other_buy{
+	width:170px;
+}
+
+
+div.other_person_buy{
+	width:790px;
+	float:right;
+	border:1px solid #ccc;
+	margin-top:15px;
+}
+div.other_person_buy p{
+	font-size:13px;
+	font-weight:bold;
+	margin:10px 0 0 20px;
+}
+
+div.other_person_buy ul{
+
+}
+
+div.other_person_buy ul li{
+	float:left;
+	margin:25px;
+}
+
+div.other_person_buy ul li span{
+	display:block;
+	width:106px;
+	height:126px;
+	margin-bottom:5px;
+}
+
+div.other_person_buy ul li span img{
+	float:left;
+	
+}
+div.other_person_buy ul li span a{}
+
+div.goods_info_detail{}
+div.goods_info_detail img{
+	float:right;
+}
+
+div.goods_comment{
+	clear:both;
+}
+
+div.goods_comment ul{}
+
+div.goods_comment ul li{
+	margin-top:10px;
+}
+
+div.goods_comment ul li.goods_comment_count{
+	float:left;
+	margin-right:50px;
+}
+div.goods_comment ul li.goods_comment_vote{
+	float:left;
+}
+div.goods_comment ul li.goods_comment_sent{
+	float:right;
+}
+div.goods_comment ul li.goods_comment_sent a{
+	display:block;
+	width:94px;
+	height:36px;
+	background:url(../images/goods/001_vj_89.gif);
+	text-indent:-9999px;
+}
+div.goods_comment ul li.goods_comment_sent p{
+	margin-right:20px;
+	margin-top:5px;
+}
+div.goods_comment ul li.comment_users{
+}
+div.goods_comment ul li.comment_users strong{
+}
+div.goods_comment ul li.comment_users img{
+}
+div.goods_comment ul li.comment_users p{
+	float:right;
+	margin-right:10px;
+}
+div.goods_comment ul li.comment_content{
+	height:20px;
+	line-height:20px;
+}
+
+div.goods_comment ul li.comment_title{
+	height:35px;
+	line-height:35px;
+	background:#eee;
+}
+
+div.goods_comment ul li.comment_title span{
+	float:left;
+}
+
+div.goods_comment ul li.comment_title p{
+	float:right;
+	margin-right:10px;
+}
+
+div.goods_comment ul li.comment_title p a{
+	width:60px;
+}
+
+div.goods_comment ul li.comment_title a{
+	float:right;
+	margin-right:10px;
+}
+
+div.goods_comment ul li.page_number{
+	margin-top:30px;
+}
+
+ul li.page_number a{
+	padding:3px;
+	border:1px solid red;
+	margin:2px;
+}
+
+
+div.goods_answer{}
+div.goods_answer ul{}
+div.goods_answer ul li.goods_answer_count{
+	height:45px;
+}
+div.goods_answer ul li.goods_answer_count p{
+	float:left;
+	margin-top:10px;
+	margin-right:30px;
+}
+div.goods_answer ul li.goods_answer_count span{
+	display:block;
+	float:left;
+	margin-top:10px;
+}
+div.goods_answer ul li.goods_answer_count a{
+	float:right;
+	width:76px;
+	height:26px;
+	background:url(../images/goods/001_vj_96.gif);
+	margin-top:10px;
+	text-indent:-9999px;
+}
+
+div.goods_answer ul li.goods_answer_lister{
+	
+}
+div.goods_answer ul li.goods_answer_lister span.goods_answer_lister_title{
+
+}
+div.goods_answer ul li.goods_answer_lister span.goods_answer_lister_title strong{
+	clear:both;
+}
+div.goods_answer ul li.goods_answer_lister span.goods_answer_lister_title p{
+	float:right;
+}
+div.goods_answer ul li.goods_answer_lister span.goods_answer_lister_content{
+
+}
+
+div.goods_answer ul li.page_number{
+	margin-top:30px;
+	margin-bottom:10px;
+}
+
+div.goods_answer ul li.go_shopping_now{
+	margin-top:20px;
+
+}
+div.goods_answer ul li.go_shopping_now a{
+	display:block;
+	width:136px;
+	height:32px;
+	background:url(../images/goods/001_vj_103.gif);
+	text-indent:-9999px;
+}
